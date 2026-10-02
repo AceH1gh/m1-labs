@@ -83,6 +83,17 @@ class Submission(SubmissionCreated, SubmissionCreate):
     pass
 
 
+class SubmissionListItem(BaseModel):
+    id: str
+    status: SubmissionStatus
+    topic: Topic
+    receivedAt: datetime
+    dueDate: date
+    replyChannel: ReplyChannel
+    fullName: str
+    body: str
+
+
 class Health(BaseModel):
     status: str
     version: str
