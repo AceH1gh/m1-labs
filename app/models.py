@@ -84,14 +84,14 @@ class Submission(SubmissionCreated, SubmissionCreate):
 
 
 class SubmissionListItem(BaseModel):
+    """CR-3, 5. kritērijs: tikai šie lauki. Bez vārda un iesnieguma teksta."""
+
     id: str
     status: SubmissionStatus
     topic: Topic
     receivedAt: datetime
     dueDate: date
     replyChannel: ReplyChannel
-    fullName: str
-    body: str
 
 
 class Health(BaseModel):

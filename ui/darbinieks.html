@@ -27,7 +27,14 @@
     <form class="filters" id="filters">
       <div>
         <label for="status">Statuss</label>
-        <input id="status" name="status" placeholder="piemēram, RECEIVED">
+        <select id="status" name="status">
+          <option value="">Visi</option>
+          <option value="RECEIVED">Saņemts</option>
+          <option value="IN_PROGRESS">Izskatīšanā</option>
+          <option value="FORWARDED">Pārsūtīts</option>
+          <option value="ANSWERED">Atbildēts</option>
+          <option value="WITHDRAWN">Atsaukts</option>
+        </select>
       </div>
       <div>
         <label for="topic">Tēma</label>
@@ -45,7 +52,7 @@
     <div class="count" id="count"></div>
     <table>
       <thead>
-        <tr><th>Numurs</th><th>Statuss</th><th>Tēma</th><th>Saņemts</th><th>Termiņš</th><th>Kanāls</th><th>Iesniedzējs</th><th>Teksts</th></tr>
+        <tr><th>Numurs</th><th>Statuss</th><th>Tēma</th><th>Saņemts</th><th>Termiņš</th><th>Kanāls</th></tr>
       </thead>
       <tbody id="rows"></tbody>
     </table>
@@ -77,7 +84,7 @@
       count.textContent = "Atrasti: " + data.length;
       for (const s of data) {
         const tr = document.createElement("tr");
-        [s.id, s.status, s.topic, s.receivedAt.slice(0, 10), s.dueDate, s.replyChannel, s.fullName, s.body]
+        [s.id, s.status, s.topic, s.receivedAt.slice(0, 10), s.dueDate, s.replyChannel]
           .forEach((value) => tr.appendChild(cell(value)));
         rows.appendChild(tr);
       }
