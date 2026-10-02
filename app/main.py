@@ -15,6 +15,8 @@ from app.errors import SubmissionNotFound, register_error_handlers
 from app.models import (
     Error,
     Health,
+    PreferredChannel,
+    ReasonCode,
     ReplyChannel,
     Submission,
     SubmissionCreate,
@@ -43,8 +45,24 @@ register_error_handlers(app)
 storage.reset()
 
 
-def get_omd() -> Callable[[str], str | None]:
+OmdLookup = Callable[[str], omd_client.OmdCheck]
+
+
+def get_omd() -> OmdLookup:
     return omd_client.mailbox_status
+
+
+def decide_reply_channel(
+    preferred: PreferredChannel, check: omd_client.OmdCheck
+) -> tuple[ReplyChannel, ReasonCode | None]:
+    """CR-2: atbildes kanāls pēc OMD atbildes. Ja reģistrs neatbild skaidri, nemin."""
+    if check.result is omd_client.OmdResult.ACTIVE:
+        return ReplyChannel.E_ADDRESS, None
+    if check.result is omd_client.OmdResult.NOT_ACTIVATED:
+        if preferred is PreferredChannel.E_ADDRESS:
+            return ReplyChannel.EMAIL, ReasonCode.E_ADDRESS_NOT_ACTIVE
+        return ReplyChannel(preferred.value), None
+    return ReplyChannel.PENDING_CHANNEL_CHECK, ReasonCode.REGISTER_UNAVAILABLE
 
 
 @app.get("/", include_in_schema=False)
@@ -71,15 +89,11 @@ def list_topics() -> list[TopicItem]:
 )
 def create_submission(
     data: SubmissionCreate,
-    omd: Annotated[Callable[[str], str | None], Depends(get_omd)],
+    omd: Annotated[OmdLookup, Depends(get_omd)],
 ) -> SubmissionCreated:
-    logger.info("Jauns iesniegums: %s", data.model_dump())
     received_at = datetime.now(timezone.utc).replace(microsecond=0)
-
-    if omd(data.personalCode) == "ACTIVE":
-        reply_channel = ReplyChannel.E_ADDRESS
-    else:
-        reply_channel = ReplyChannel(data.preferredChannel.value)
+    check = omd(data.personalCode)
+    reply_channel, reason = decide_reply_channel(data.preferredChannel, check)
 
     record = storage.add(
         {
@@ -88,9 +102,18 @@ def create_submission(
             "receivedAt": received_at.isoformat(),
             "dueDate": (received_at.date() + timedelta(days=REPLY_DAYS)).isoformat(),
             "replyChannel": reply_channel.value,
-            "reasonCode": None,
+            "reasonCode": reason.value if reason else None,
         }
     )
+    # Žurnālā tikai iesnieguma ID un iemesls. Nekad personas kods vai teksts.
+    logger.info("Iesniegums saņemts: %s", record["id"])
+    if check.result is omd_client.OmdResult.UNAVAILABLE:
+        logger.warning(
+            "OMD pārbaude neizdevās: iesniegums %s, iemesls %s (%s)",
+            record["id"],
+            ReasonCode.REGISTER_UNAVAILABLE.value,
+            check.detail,
+        )
     return SubmissionCreated(**record)
 
 
