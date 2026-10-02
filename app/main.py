@@ -20,9 +20,18 @@ from app.models import (
     SubmissionCreate,
     SubmissionCreated,
     SubmissionStatus,
+    Topic,
+    TopicItem,
 )
 
 VERSION = "0.1.0"
+TOPIC_NAMES = {
+    Topic.ROADS: "Ceļi un ielas",
+    Topic.WASTE: "Atkritumi",
+    Topic.PLANNING: "Teritorijas plānošana",
+    Topic.PARKS: "Parki un skvēri",
+    Topic.OTHER: "Cits",
+}
 REPLY_DAYS = 30  # Vienkāršots termiņš: 30 kalendāra dienas
 UI_DIR = Path(__file__).resolve().parent.parent / "ui"
 
@@ -46,6 +55,11 @@ def root() -> RedirectResponse:
 @app.get("/health", response_model=Health, tags=["Sistēma"])
 def get_health() -> Health:
     return Health(status="ok", version=VERSION)
+
+
+@app.get("/topics", response_model=list[TopicItem], tags=["Klasifikatori"])
+def list_topics() -> list[TopicItem]:
+    return [TopicItem(code=code, name=name) for code, name in TOPIC_NAMES.items()]
 
 
 @app.post(

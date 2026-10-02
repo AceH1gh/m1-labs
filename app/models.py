@@ -22,7 +22,13 @@ class Topic(str, Enum):
     ROADS = "ROADS"
     WASTE = "WASTE"
     PLANNING = "PLANNING"
+    PARKS = "PARKS"
     OTHER = "OTHER"
+
+
+class TopicItem(BaseModel):
+    code: Topic
+    name: str
 
 
 class SubmissionStatus(str, Enum):
