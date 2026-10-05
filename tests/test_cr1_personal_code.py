@@ -65,6 +65,14 @@ def test_cr1_ac9_hyphen_in_wrong_place_rejected(client, valid_payload):
     assert_rejected(post(client, valid_payload, "3200-0000001"), "INVALID_FORMAT")
 
 
+def test_cr1_ac10_starts_with_00_rejected(client, valid_payload):
+    assert_rejected(post(client, valid_payload, "00000000001"), "INVALID_FORMAT")
+
+
+def test_cr1_ac11_starts_with_33_rejected(client, valid_payload):
+    assert_rejected(post(client, valid_payload, "33000000001"), "INVALID_FORMAT")
+
+
 @pytest.mark.parametrize("personal_code", ["", "   "])
 def test_cr1_empty_or_spaces_required(client, valid_payload, personal_code):
     assert_rejected(post(client, valid_payload, personal_code), "REQUIRED")
