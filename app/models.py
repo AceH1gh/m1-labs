@@ -7,9 +7,9 @@ from enum import Enum
 from pydantic import BaseModel, field_validator
 from pydantic_core import PydanticCustomError
 
-# CR-1: 11 cipari vai DDMMYY-NNNNN, nesākas ar 00 vai 33.
+# CR-1: 11 cipari vai DDMMYY-NNNNN, pirmie divi cipari 01–32.
 # Kontrolcipars un datums netiek pārbaudīti.
-PERSONAL_CODE = re.compile(r"(?!00|33)[0-9]{6}-?[0-9]{5}")
+PERSONAL_CODE = re.compile(r"(?:0[1-9]|[12][0-9]|3[0-2])[0-9]{4}-?[0-9]{5}")
 
 
 class PreferredChannel(str, Enum):

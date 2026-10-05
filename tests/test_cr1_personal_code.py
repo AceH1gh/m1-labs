@@ -69,8 +69,16 @@ def test_cr1_ac10_starts_with_00_rejected(client, valid_payload):
     assert_rejected(post(client, valid_payload, "00000000001"), "INVALID_FORMAT")
 
 
-def test_cr1_ac11_starts_with_33_rejected(client, valid_payload):
-    assert_rejected(post(client, valid_payload, "33000000001"), "INVALID_FORMAT")
+@pytest.mark.parametrize(
+    "personal_code", ["33000000001", "374595-13244", "99000000001"]
+)
+def test_cr1_ac11_starts_with_33_or_more_rejected(client, valid_payload, personal_code):
+    assert_rejected(post(client, valid_payload, personal_code), "INVALID_FORMAT")
+
+
+@pytest.mark.parametrize("personal_code", ["01000000001", "31000000001", "32000000001"])
+def test_cr1_ac11_starts_with_01_to_32_accepted(client, valid_payload, personal_code):
+    assert post(client, valid_payload, personal_code).status_code == 201
 
 
 @pytest.mark.parametrize("personal_code", ["", "   "])
